@@ -1,26 +1,26 @@
-from ..models.book import Book
+from ..models.task import Task
 from .base_collection import BaseCollection
 from .base_member import BaseMember
 
 class Collection(BaseCollection):
-  model = Book
+  model = Task
 
   @property
   def required_fields(self):
     return ['title', 'content']
 
   def serializer(self, obj):
-    return book_serialized(obj)
+    return task_serialized(obj)
 
 class Member(BaseMember):
-  model = Book
+  model = Task
 
   @property
   def required_fields(self):
     return ['title', 'content']
 
   def serializer(self, obj):
-    return book_serialized(obj)
+    return task_serialized(obj)
 
-def book_serialized(book):
-  return {'id': book.id, 'title': book.title, 'content': book.content}
+def task_serialized(task):
+  return {'id': task.id, 'title': task.title, 'content': task.content}
