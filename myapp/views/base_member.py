@@ -6,12 +6,12 @@ class BaseMember(View):
   model = None
   serializer = None
 
-  def get(self, request, id):
-    obj = get_object_or_404(self.model, pk=id)
+  def get(self, request, current_user, id):
+    obj = self.get_object(request, current_user, id)
     return JsonResponse(self.serializer(obj))
 
-  def put(self, request, id):
-    obj = get_object_or_404(self.model, pk=id)
+  def put(self, request, current_user, id):
+    obj = self.get_object(request, current_user, id)
     data = request.POST
     if all(field in data for field in self.required_fields):
       for field in data:
@@ -21,10 +21,13 @@ class BaseMember(View):
     else:
       return JsonResponse({'error': 'Missing required fields'}, status=400)
 
-  def delete(self, request, id):
-    obj = get_object_or_404(self.model, pk=id)
+  def delete(self, request, current_user, id):
+    obj = self.get_object(request, current_user, id)
     obj.delete()
     return JsonResponse({'message': 'Object deleted successfully'}, status=204)
+
+  def get_object(self, request, current_user, id):
+    return get_object_or_404(self.model, pk=id)
 
   @property
   def required_fields(self):

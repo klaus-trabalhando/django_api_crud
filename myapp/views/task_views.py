@@ -2,18 +2,33 @@ from ..models.task import Task
 from .base_collection import BaseCollection
 from .base_member import BaseMember
 from .session_views import require_authenticated_user
+from django.shortcuts import get_object_or_404
 
 # curl -H "Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3MTg3NDA1MzQsImlhdCI6MTcxODY1NDEzNH0.t0OtcbQ-G7N1-OfqSRADk5u-kwOKt-Yjke2YE_6N3Xw" http://127.0.0.1:8000/tasks/
 class Collection(BaseCollection):
   model = Task
+  folder = 'tasks'
 
   @require_authenticated_user
-  def get(self, request):
-    return super().get(request)
+  def new(self, request, current_user=None):
+    return super().new(request)
+  
+  @require_authenticated_user
+  def get(self, request, current_user=None):
+    return super().get(request, current_user)
 
   @require_authenticated_user
-  def post(self, request):
-    return super().post(request)
+  def post(self, request, current_user=None):
+    return super().post(request, current_user)
+
+  def base_filter(self, request, current_user):
+    return self.model.objects.filter(user_id=current_user.id)
+  
+  def assign_attributes(self, request, current_user, data):
+    data = super().assign_attributes(request, current_user, data)
+    if current_user:
+      data['user_id'] = int(current_user.id)
+    return data
 
   @property
   def required_fields(self):
@@ -25,6 +40,21 @@ class Collection(BaseCollection):
 class Member(BaseMember):
   model = Task
 
+  @require_authenticated_user
+  def get(self, request, id, current_user=None):
+    return super().get(request, current_user, id)
+
+  @require_authenticated_user
+  def put(self, request, id, current_user=None):
+    return super().put(request, current_user, id)
+
+  @require_authenticated_user
+  def delete(self, request, id, current_user=None):
+    return super().delete(request, current_user, id)
+
+  def get_object(self, request, current_user, id):
+    return get_object_or_404(self.model, user_id=current_user.id, pk=id)
+  
   @property
   def required_fields(self):
     return ['title', 'content']
@@ -33,4 +63,4 @@ class Member(BaseMember):
     return task_serialized(obj)
 
 def task_serialized(task):
-  return {'id': task.id, 'title': task.title, 'content': task.content}
+  return {'id': task.id, 'title': task.title, 'content': task.content, 'user_id': task.user_id}
