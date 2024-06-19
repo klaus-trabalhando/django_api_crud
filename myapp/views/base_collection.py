@@ -18,7 +18,7 @@ class BaseCollection(View):
     return HttpResponse(render(request, f"{self.folder}/new.html"))
 
   def get(self, request, current_user=None):
-    objects = self.find_records(request, current_user)
+    objects = self.base_filter(request, current_user)
     data = [self.serializer(obj) for obj in objects]
     return JsonResponse(data, safe=False)
 

@@ -3,6 +3,8 @@ from .base_collection import BaseCollection
 from .base_member import BaseMember
 from .session_views import require_authenticated_user
 from django.shortcuts import get_object_or_404
+from ..tasks import send_email_task
+
 
 # curl -H "Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3MTg3NDA1MzQsImlhdCI6MTcxODY1NDEzNH0.t0OtcbQ-G7N1-OfqSRADk5u-kwOKt-Yjke2YE_6N3Xw" http://127.0.0.1:8000/tasks/
 class Collection(BaseCollection):
@@ -39,6 +41,11 @@ class Collection(BaseCollection):
 
 class Member(BaseMember):
   model = Task
+  folder = 'tasks'
+
+  @require_authenticated_user
+  def edit(self, request, current_user=None, id=None):
+    return super().edit(request, current_user=current_user, id=id)
 
   @require_authenticated_user
   def get(self, request, id, current_user=None):
@@ -54,6 +61,20 @@ class Member(BaseMember):
 
   def get_object(self, request, current_user, id):
     return get_object_or_404(self.model, user_id=current_user.id, pk=id)
+
+  def allowed_fields(self, request, current_user):
+    fields = super().allowed_fields(request, current_user)
+    fields['completed'] = fields.get('completed') == 'on'
+    return fields
+  
+  def after_update(self, obj):
+    if obj.completed != obj.completed_was and obj.completed:
+      subject = 'Task Completed'
+      from_email = 'klaus.trabalhando@gmail.com'
+      recipient_list = ['klaus.trabalhando@gmail.com']
+      template_name = 'email_template.html'
+      context = {'username': 'Klaus test'}
+      send_email_task.delay(subject, from_email, recipient_list, template_name, context)
   
   @property
   def required_fields(self):
@@ -63,4 +84,4 @@ class Member(BaseMember):
     return task_serialized(obj)
 
 def task_serialized(task):
-  return {'id': task.id, 'title': task.title, 'content': task.content, 'user_id': task.user_id}
+  return {'id': task.id, 'title': task.title, 'content': task.content, 'user_id': task.user_id, 'completed': task.completed}

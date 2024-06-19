@@ -1,0 +1,22 @@
+<!-- templates/login.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Edit Task</title>
+  </head>
+  <body>
+    <h1>Edit Task</h1>
+    <form method="post" action="{% url 'task' id=record.id %}">
+      <input type="hidden" name="_method" value="PUT">
+      {% csrf_token %}
+      <label for="title">Title:</label>
+      <input type="text" id="title" name="title" required value="{{ record.title }}"><br>
+      <label for="content">Content:</label>
+      <input type="text" id="content" name="content" required value="{{ record.content }}"><br>
+      <label for="content">Completed:</label>
+      <input type="checkbox" id="completed" name="completed" {% if record.completed %}checked{% endif %}><br>
+      <button type="submit">Update</button>
+    </form>
+  </body>
+</html>
