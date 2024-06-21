@@ -69,11 +69,11 @@ class Member(BaseMember):
   
   def after_update(self, obj):
     if obj.completed != obj.completed_was and obj.completed:
-      subject = 'Task Completed'
+      subject = f'Task {obj.title} has been completed'
       from_email = 'klaus.trabalhando@gmail.com'
       recipient_list = ['klaus.trabalhando@gmail.com']
       template_name = 'email_template.html'
-      context = {'username': 'Klaus test'}
+      context = {'username': 'Klaus test', 'task': obj }
       send_email_task.delay(subject, from_email, recipient_list, template_name, context)
   
   @property

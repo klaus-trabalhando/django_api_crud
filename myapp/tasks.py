@@ -10,3 +10,12 @@ def send_email_task(subject, from_email, recipient_list, template_name, context)
   msg = EmailMultiAlternatives(subject, text_content, from_email, recipient_list)
   msg.attach_alternative(html_content, "text/html")
   msg.send()
+
+@shared_task
+def notify_invitation(recipient_list, context):
+  html_content = render_to_string('invitation.html', context)
+  text_content = 'Invitation to team.'
+
+  msg = EmailMultiAlternatives('Team invitation', text_content, 'klaus.trabalhando@gmail.com', recipient_list)
+  msg.attach_alternative(html_content, "text/html")
+  msg.send()
