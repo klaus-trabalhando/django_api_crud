@@ -9,6 +9,7 @@
     <h1>Login</h1>
     <form method="post" action="{% url 'login' %}">
       {% csrf_token %}
+      <input type="hidden" value="{{redirect_to}}" name="redirect_to" />
       <label for="username">Username:</label>
       <input type="text" id="username" name="username" required><br>
       <label for="password">Password:</label>

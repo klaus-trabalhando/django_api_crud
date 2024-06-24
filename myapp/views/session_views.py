@@ -11,7 +11,7 @@ import json
 @csrf_exempt
 def login(request):
   if request.method == 'GET':
-    return render(request, 'login.html')
+    return render(request, 'login.html', { 'redirect_to': request.GET.get('redirect_to') })
   if request.method == 'POST':
     data = None
     if request.content_type == 'application/json':
@@ -23,13 +23,17 @@ def login(request):
       data = request.POST
     username = data.get('username')
     password = data.get('password')
+    redirect_to = data.get('redirect_to')
     user = authenticate(username=username, password=password)
     if user is not None:
       token = generate_jwt(user.id)
       if request.content_type == 'application/json':
-        return JsonResponse({'token': token})
+        return JsonResponse({'token': token })
       else:
-        response = HttpResponseRedirect("/tasks/")
+        if redirect_to:
+          response = HttpResponseRedirect(redirect_to)
+        else:
+          response = HttpResponseRedirect("/tasks/")
         one_day_in_seconds = 86400
         response.set_cookie('authtoken', token, max_age=one_day_in_seconds, secure=True, httponly=True, samesite='Strict')
         return response
@@ -59,16 +63,20 @@ def require_authenticated_user(function):
 
     token = request.COOKIES.get('authtoken')
     if token is None:
-      return redirect_to_login()
+      return redirect_to_login(request)
 
     user_id = decode_jwt(token)
     if user_id is None:
-      return redirect_to_login()
+      return redirect_to_login(request)
     User = get_user_model()
     kwargs['current_user'] = User.objects.get(pk=user_id)
     return function(*args, **kwargs)
 
   return wrapper
 
-def redirect_to_login():
-  return HttpResponseRedirect('/login/')
+def redirect_to_login(request):
+  if request.method == 'GET':
+    current_url = request.build_absolute_uri()
+    return HttpResponseRedirect(f'/login/?redirect_to={current_url}')
+  else:
+    return HttpResponseRedirect('/login/')

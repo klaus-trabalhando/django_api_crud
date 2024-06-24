@@ -4,7 +4,7 @@ from .base_member import BaseMember
 from .session_views import require_authenticated_user
 from django.shortcuts import get_object_or_404
 from ..tasks import send_email_task
-
+from django.http import JsonResponse
 
 # curl -H "Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE3MTg3NDA1MzQsImlhdCI6MTcxODY1NDEzNH0.t0OtcbQ-G7N1-OfqSRADk5u-kwOKt-Yjke2YE_6N3Xw" http://127.0.0.1:8000/tasks/
 class Collection(BaseCollection):
@@ -17,7 +17,12 @@ class Collection(BaseCollection):
   
   @require_authenticated_user
   def get(self, request, current_user=None):
-    return super().get(request, current_user)
+    results = Task.search(query=request.GET.get('query', ''))
+    result_data = {
+      'total': results['hits']['total']['value'],
+      'hits': [hit['_source'] for hit in results['hits']['hits']]
+    }
+    return JsonResponse(result_data, safe=False)
 
   @require_authenticated_user
   def post(self, request, current_user=None):
