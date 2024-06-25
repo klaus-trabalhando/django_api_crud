@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from django.core.exceptions import ValidationError
 import json
 from django.http import JsonResponse, HttpResponse
 from django.views import View
@@ -17,7 +18,7 @@ class BaseCollection(View):
 
   def new(self, request):
     return HttpResponse(render(request, f"{self.folder}/new.html"))
-
+  
   def get(self, request, current_user=None):
     objects = self.base_filter(request, current_user)
     data = [self.serializer(obj) for obj in objects]
@@ -31,7 +32,10 @@ class BaseCollection(View):
       data = json.loads(request.body)
     data = self.assign_attributes(request, current_user, data)
     if all(field in data for field in self.required_fields):
-      obj = self.model.objects.create(**data)
+      try:
+        obj = self.model.objects.create(**data)
+      except ValidationError as e:
+        return JsonResponse({'errors': e.message_dict}, status=400)
       self.after_create(request, current_user, obj)
       return JsonResponse(self.serializer(obj), status=201)
     else:

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% load static %}
+    <title>Swagger UI</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'swagger/dist/swagger-ui.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'swagger/dist/index.css' %}">
+    <script src="{% static 'swagger/dist/swagger-ui-bundle.js' %}"></script>
+    <script src="{% static 'swagger/dist/swagger-ui-standalone-preset.js' %}"></script>
+</head>
+<body>
+    <div id="swagger-ui"></div>
+    <script>
+        window.onload = function() {
+            // Initialize Swagger UI
+            const ui = SwaggerUIBundle({
+                url: "{% url 'swagger-spec' %}",
+                dom_id: '#swagger-ui',
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset
+                ],
+                layout: "StandaloneLayout"
+            });
+
+            // Custom cookie authorization logic
+            ui.initOAuth({
+                clientId: "your-client-id",
+                clientSecret: "your-client-secret",
+                realm: "your-realms",
+                appName: "your-app-name",
+                scopeSeparator: ",",
+                additionalQueryStringParams: {},
+                useBasicAuthenticationWithAccessCodeGrant: true,
+                // Add your custom callback to set the cookie
+                onComplete: function() {
+                    const cookieValue = prompt("Enter your auth token:");
+                    if (cookieValue) {
+                        document.cookie = "authtoken=" + cookieValue;
+                    }
+                }
+            });
+
+            // Add a custom button for setting the cookie
+            const button = document.createElement("button");
+            button.innerText = "Set Cookie";
+            button.onclick = function() {
+                const cookieValue = prompt("Enter your auth token:");
+                if (cookieValue) {
+                    document.cookie = "authtoken=" + cookieValue;
+                }
+            };
+            document.getElementById('swagger-ui').prepend(button);
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+swagger: "2.0"
+info:
+  title: Sample API
+  description: API for demonstrating Swagger UI integration with Django.
+  version: 1.0.0
+host: 127.0.0.1:8000
+basePath: /
+schemes:
+  - http
+components:
+  securitySchemes:
+    CookieAuth:
+      type: apiKey
+      in: cookie
+      name: authtoken
+security:
+  - CookieAuth: []
+definitions:
+  Hit:
+    type: object
+    properties:
+      title:
+        type: string
+      content:
+        type: string
+      completed:
+        type: boolean
+      created_at:
+        type: string
+        format: date-time
+  HitsResponse:
+    type: object
+    properties:
+      total:
+        type: integer
+      hits:
+        type: array
+        items:
+          $ref: '#/definitions/Hit'
+paths:
+  /tasks:
+    get:
+      summary: Task endpoint
+      description: Returns a list of tasks.
+      security:
+        - CookieAuth: []
+      responses:
+        200:
+          description: Successful response
+          schema:
+            $ref: '#/definitions/HitsResponse'
+        401:
+          description: Unauthorized

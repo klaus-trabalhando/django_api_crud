@@ -1,5 +1,6 @@
 from .active_record import ActiveRecord
 from ..elasticsearch_client import es
+from django.conf import settings
 
 class SearchableRecord(ActiveRecord):
 
@@ -8,7 +9,7 @@ class SearchableRecord(ActiveRecord):
 
   @classmethod
   def full_index_name(self):
-    return f'django_test_{self.index_name()}'
+    return f"{settings.ELASTICSEARCH_DSL['default']['index_prefix']}_{self.index_name()}"
 
   @classmethod
   def index_name(self):
@@ -29,7 +30,7 @@ class SearchableRecord(ActiveRecord):
     }
   
   def index_data(self):
-    raise NotImplementedError("You must define 'index_name' in your subclass.")
+    raise NotImplementedError("You must define 'index_data' in your subclass.")
 
   @classmethod
   def create_index(self):

@@ -1,0 +1,7 @@
+openapi: 3.0.3
+info:
+  title: Django test API
+  version: 1.0.0
+  description: This is a test
+paths: {}
+components: {}

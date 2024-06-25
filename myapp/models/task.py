@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+from django.core.exceptions import ValidationError
 
 class Task(SearchableRecord):
   user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tasks')
@@ -10,6 +11,25 @@ class Task(SearchableRecord):
   content = models.TextField()
   completed = models.BooleanField()
   created_at = models.DateTimeField(auto_now_add=True)
+
+  def clean(self):
+    super().clean()
+    self.clean_title()
+    if not self.title:
+      raise ValidationError({'title': 'Title cannot be empty'})
+    
+    if not self.user:
+      raise ValidationError({'user': 'User cannot be blank'})
+  
+  def clean_title(self):
+    if len(self.title.strip()) < 2:
+      raise ValidationError({'title': 'title too short'})
+  
+  def save(self, *args, **kwargs) -> None:
+    if self.completed == None:
+      self.completed = False
+    self.full_clean()
+    return super().save(*args, **kwargs)
 
   def __str__(self):
     return self.title

@@ -3,8 +3,11 @@ from .views import task_views
 from .views import team_views
 from .views import session_views
 from .views import invitation_views
+from .views import swagger
 
 urlpatterns = [
+  path('swagger-ui/', swagger.swagger_ui, name='swagger-ui'),
+  path('swagger.yaml', swagger.swagger_spec, name='swagger-spec'),
   path('teams/', team_views.Collection.as_view(), name='teams'),
   path('teams/<int:id>/invite', team_views.Invitation.as_view(), name='team_invite'),
   path('invitation/<str:code>/<str:action>', invitation_views.Member.as_view(), name='invitation_code'),
